@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<link rel="stylesheet" type="text/css" href="css_main.css">
+<title>Interactive map</title>
+</head>
+
+<body>
+<h1>Interactive Graph State</h1>
+<meta charset="utf-8">
+<div id="wrapper">
+<iframe src="quantum_js.html" marginwidth="0" marginheight="0" scrolling="yes"></iframe>
+<div id="right">
+<input type="button" value="X-measurement"><br>
+<input type="button" value="Y-measurement"><br>
+<input type="button" value="Z-measurement"><br>
+</div>
+</div>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+	function changetext(d){
+		var name, patent;		
+		
+		var nodeId = d3.select("#nodeId");
+		
+		nodeId.text(d);
+
+		d3.json("network.json", function(error, json){
+			var nodePatent = d3.select("#nodePatent");
+			var nodeName = d3.select("#nodeName");
+
+			json.forEach(function(dd){
+				if(dd.id==d) {
+					name = dd.name;
+					patent = dd.patent;
+				}});
+
+				nodeName.text(name);
+				nodePatent.text(patent);
+			});
+		}
+
+</script>
+</body>
+
+</html>

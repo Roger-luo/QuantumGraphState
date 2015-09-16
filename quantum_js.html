@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<meta charset="utf-8">
+<style>
+
+.node circle{
+	
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+.node text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+
+var width = 550,//960,
+    height = 500,
+    graph;//500;
+
+//var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-120)
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+var lastNode, lastNodeEntry;
+var link = svg.selectAll(".link");
+var node = svg.selectAll(".node");
+d3.json("cosine.txt", function(error, json){
+	graph = json;
+	if (error) return console.warn(error);
+	update();
+});
+
+function update(){
+	
+	force
+	      .nodes(graph.nodes)
+	      .links(graph.links)
+	      .start();
+
+	link = link.data(graph.links);
+	link.exit().remove();
+	link.enter().append("line")
+	      .attr("class", "link")
+	      .style("stroke-width", function(d) {return Math.sqrt(d.weight * 5);});
+
+	d3.selectAll("line").style("stroke-width", function(d) { 
+	      	return d.clicked ? 3 : Math.sqrt(d.weight * 5);
+	      })
+		.style("stroke-opacity", function(d){return d.clicked ? .9 : .6;});
+
+    node = node.data(graph.nodes);
+	node.exit().remove();
+	node.enter()
+	      .append("circle")
+	      .attr("r", 5)
+	      .style("fill", function(d) { return "grey"; })
+	      .call(force.drag);
+	node.on("click", hlnode);
+	node.on("mouse")
+	d3.selectAll("circle")
+	    .attr("r", function(d){return d.clicked ? 8 : 5;})
+		.style("fill", function(d){return d.clicked ? "yellow" : "grey";})
+		.attr("stroke-width", function(d){return d.clicked ? 1.5 : 0})
+		.attr("stroke", "#ccc");
+
+	node.append("title").text(function(d){return d.id});
+	
+	force.on("tick", function() {
+	    link.attr("x1", function(d) { return d.source.x; })
+	        .attr("y1", function(d) { return d.source.y; })
+	        .attr("x2", function(d) { return d.target.x; })
+	        .attr("y2", function(d) { return d.target.y; });
+
+	    node.attr("cx", function(d) { return d.x; })
+	        .attr("cy", function(d) { return d.y; });
+	  });
+}
+
+function hlnode(d){ 
+    if (d3.event.defaultPrevented) return;
+    d.clicked = true;
+    if(lastNode) lastNodeEntry.clicked = false;
+	graph.links.forEach(function(dd){
+		if(dd.source.id==d.id || dd.target.id==d.id) dd.clicked = true;
+		else dd.clicked = false;
+	});
+    lastNode = d3.select(this);
+    lastNodeEntry = d;
+    update();
+}
+</script>
+</body>
+</html>
